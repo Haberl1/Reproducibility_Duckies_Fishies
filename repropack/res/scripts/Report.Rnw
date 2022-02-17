@@ -1,0 +1,134 @@
+\documentclass[10pt]{article}
+
+\usepackage{wrapfig}
+
+\begin{document}
+
+  \title{\vspace{-5.5cm}Duckies and Fishies \\ \small{A reproducibility Report}}
+  \author{\small Sabrina Haberl}
+  \maketitle
+  
+  <<r setup, include=FALSE>>=
+  library(reticulate)
+  knitr::knit_engines$set(python=reticulate::eng_python)
+  @
+  
+  <<feasible_fig, echo=FALSE, include=FALSE, engine='python'>>=
+  import plotting as pl
+  pl.plot_maximal_profit()
+  @
+  <<historical_fig, echo=FALSE, include=FALSE, engine='python'>>=
+  import plotting as pl
+  pl.get_historical_sales()
+  @
+  <<updated_fig, echo=FALSE, include=FALSE, engine='python'>>=
+  import plotting as pl
+  pl.plot_update_plan()
+  @
+  
+      \begin{wrapfigure}{r}{0.4\textwidth}
+        \includegraphics[width=0.4\textwidth]{./res/scripts/figure/feasible_fig-1.pdf}
+        \caption{Feasible region with constraints and maximised product mix.}
+        \includegraphics[width=0.4\textwidth]{./res/scripts/figure/historical_fig-1.pdf}
+        \caption{Historical sales of the last three years.}
+        \includegraphics[width=0.4\textwidth]{./res/scripts/figure/updated_fig-1.pdf}
+        \caption{Maximised product mix with updated constraints.}
+      \end{wrapfigure}
+  
+    \section*{\centering\small{Introduction}}
+  
+    In this imaginary scenario (Milton, 2009, S. 75-109), I am a Data Analyst 
+    and hired by the company 'Bathing Friends Unlimited'. This company wants to 
+    improve their profit in selling rubber ducks and fishes under certain 
+    constraints. To calculate the maximized profit, there has to be a 
+    feasible region that is defined by the constrains in the model that is used. 
+    In the first model, there are only the number of ducks and fishes that can be 
+    produced in one month and the rubber supply taken into consideration.
+    Later we realized that the assumptions made in this model are not accurate enough, because
+    the fish were sold out and the ducks were almost a non-seller. To get a model 
+    that is closer to reality, I took the sales of the last years into
+    consideration.
+  
+  \section*{\centering\small{Methods}}
+  
+    To calculate the optimized product mix with maximum profit, we need a optimization
+    problem solver that works with the constraints maximum/minimum number of fishes/ducks
+    that can be produced/sold and the rubber pellets supply.
+    
+  \section*{\centering\small{Results}}
+  
+    First, I calculated a model that took following constraints into consideration. 
+    <<feasible_model, echo=FALSE, results='asis', engine='python'>>=
+    import plotting as pl
+    data = pl.constraints
+    print("The company is able to produce " + str(data["time for ducks"]) + " ducks, " + str(data["time for fish"]) + " fishes and has a rubber pellets supply of " + str(data["pellet supply"]) + ".")
+    @
+        Then I calculated the maximal profit via optimization and put that together in 
+        the plot that can be seen in Figure 1.
+    <<result_first_model, echo=FALSE, results='asis', engine='python'>>=
+    import plotting as pl
+    res = pl.print_feasible_result()
+    print("In this model we produced " + str(res[0]) + " ducks, " + str(res[1]) + " fish and gained a total profit of " + str(res[2]) + "\$.") 
+    @
+        The second model was based on the constrains that we had defined before and the 
+        historical sales of the last three years (see Figure 2). With the new constrains 
+        I ran the optimization again and the result can be seen in Figure 3. 
+    <<result_second_model, echo=FALSE, results='asis', engine='python'>>=
+    import plotting as pl
+    res = pl.print_updated_result()
+    print("In this model we produced " + str(res[0]) + " ducks, " + str(res[1]) + " fishes and gained a total profit of " + str(res[2]) + "\$.") 
+    @
+    \clearpage
+      
+    \section*{\centering\small{Docker Recipe}}
+    
+      The folder that contains the docker recipe consists out of a docker file, 
+      a dispatcher shell script, the sub directory res for resources and an 
+      output folder. The resources are split in two groups, data 
+      and scripts. Data contains the PDF file that describes the optimization 
+      problem and the CSV file that contains the historical sales data. Scripts 
+      has the python script, that performs all calculations and plots the figures 
+      and the knitr document, that is compiled to a TEX and PDF file during the 
+      building of the docker container.
+      
+    \section*{\centering\small{Dispatcher script}}
+      
+      The repropack folder contains a dispatcher script named 'build.sh'. By
+      executing this script with the command 'bash build.sh' at the command line, 
+      the docker container will be built. After the build process the image is 
+      run and the PDF and TEX report, as well as the figures, are copied to the 
+      output folder on the host system. 
+      
+    \section*{\centering\small{Dockerfile}}
+    
+      At first the dockerfile describes all required packages that need to be
+      installed. These packages are essentials for the ubuntu environment, 
+      python3 for the python script, r packages for knitr and texlive packages 
+      for LaTex. Afterwards, a user is added to the 
+      environment and the working directory is set. Then the 
+      resource directory is copied into the docker container and the pip install 
+      commands required for the python script are executed. 
+      At the end the Rnw file is converted to a TEX and PDF file and stored in 
+      the working directory.
+    
+    \section*{\centering\small{Python Script}}
+    
+      The python script the optimization problem solving and plotting of the 
+      figures. For the optimization I used the module 'minimize' from the library 
+      'scipy.optimize'. It plots all figures shown in the given scenario. These 
+      are the feasible region without the historic sales 
+      data, the historic sales graph and the feasible region after taking 
+      historical sales into consideration.
+    
+    \section*{\centering\small{Reproduction}}
+    
+    Comparing the output bit wise, shows that the files 
+    are not the same due to the timestamp and the date that are included in the 
+    files. If the timestamps are crossed out and the files are compared they 
+    are bit wise identical.
+    
+    \section*{\centering\small{Bibliography}}
+    
+      Milton, M. (2009). Head First Data Analysis. Sebastopool, California, USA:~O'Reilly~Media.
+    
+\end{document}
