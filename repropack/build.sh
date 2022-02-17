@@ -14,6 +14,7 @@ docker build -t repropack .
 docker run -it -p 445:445 -p 139:139 -d repropack
 
 # copy output to output folder
+mkdir output
 last_id=$(docker ps -n -1 -q)
 docker cp $last_id:/home/repro/Report.pdf ./output
 docker cp $last_id:/home/repro/Report.tex ./output
